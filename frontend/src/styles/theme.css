@@ -1,0 +1,43 @@
+/* Base design tokens. The screens mostly use hard-coded brand colors, but these
+   keep Tailwind's base layer (borders, background, typography defaults) sane. */
+
+:root {
+  --font-size: 16px;
+  --background: #ffffff;
+  --foreground: #1a1614;
+  --border: rgba(0, 0, 0, 0.1);
+  --ring: #f75a2c;
+  --radius: 0.625rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-size: var(--font-size);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+}

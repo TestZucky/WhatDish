@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wd" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F75A2C"/>
+      <stop offset="1" stop-color="#D94010"/>
+    </linearGradient>
+  </defs>
+  <!-- Full-bleed background: platform masks apply their own rounding. -->
+  <rect width="64" height="64" fill="url(#wd)"/>
+  <!-- Volume2 (lucide) speaker + sound waves, kept inside the maskable safe zone. -->
+  <g transform="translate(17.05 16.4) scale(1.3)" stroke="#fff" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#fff"/>
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" fill="none"/>
+    <path d="M19.07 4.93a5 5 0 0 1 0 14.14" fill="none"/>
+  </g>
+</svg>

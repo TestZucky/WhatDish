@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+#
+# WhatDish pre-commit hook — runs scoped checks on staged changes before a commit
+# is created. Enable it with `make hooks` (sets core.hooksPath=.githooks).
+#
+# Scope-aware: backend checks run only when backend/*.py is staged, frontend
+# checks only when frontend/*.ts(x) is staged. Bypass in a pinch with:
+#     git commit --no-verify
+#
+set -uo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT" || exit 1
+
+# Staged files that still exist (Added/Copied/Modified/Renamed).
+staged() { git diff --cached --name-only --diff-filter=ACMR; }
+
+backend_changed="$(staged | grep -E '^backend/.*\.py$' || true)"
+frontend_changed="$(staged | grep -E '^frontend/.*\.(ts|tsx)$' || true)"
+
+if [ -z "$backend_changed" ] && [ -z "$frontend_changed" ]; then
+  exit 0  # nothing we check was touched
+fi
+
+fail=0
+
+if [ -n "$backend_changed" ]; then
+  if [ -x backend/.venv/bin/pytest ]; then
+    echo "▶ backend: pytest"
+    backend/.venv/bin/pytest backend/tests -q || fail=1
+  else
+    echo "⚠ backend/.venv/bin/pytest not found — run 'make install-backend'. Skipping backend checks."
+  fi
+fi
+
+if [ -n "$frontend_changed" ]; then
+  if [ -d frontend/node_modules ]; then
+    echo "▶ frontend: typecheck"
+    ( cd frontend && npm run --silent typecheck ) || fail=1
+  else
+    echo "⚠ frontend/node_modules not found — run 'make install-frontend'. Skipping frontend checks."
+  fi
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo
+  echo "✖ pre-commit checks failed. Fix the issues above, or bypass with: git commit --no-verify"
+  exit 1
+fi
+
+echo "✓ pre-commit checks passed."
+exit 0

@@ -1,0 +1,77 @@
+/* Animations and utilities used across the WhatDish screens.
+   Extracted from the original inline <style> block. */
+
+@keyframes speakerPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes scanLine {
+  0%,
+  100% {
+    top: 20%;
+  }
+  50% {
+    top: 72%;
+  }
+}
+
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes sparkSpin {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) rotate(20deg);
+  }
+}
+
+@keyframes spinCW {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hide-scroll::-webkit-scrollbar {
+  display: none;
+}
+.hide-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.menu-paper {
+  background: #f7f0e2;
+}

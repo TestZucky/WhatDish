@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Secrets & local overrides — never commit. Per-env non-secret defaults
+# (.env.development, .env.production) and .env.example ARE committed.
+.env
+.env.local
+.env.*.local
