@@ -3,8 +3,8 @@ import { motion } from 'motion/react';
 import { Sparkles, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { PROCESSING_STEPS } from '../lib/constants';
-import { scanMenu } from '../lib/api';
-import type { RestaurantMenu } from '../types';
+import { scanMenu, ApiError } from '../lib/api';
+import type { ErrorType, RestaurantMenu } from '../types';
 
 export function ProcessingScreen() {
   const { setScreen, setMenuView, setMenu, showError, scanImage, setScanImage } =
@@ -18,6 +18,7 @@ export function ProcessingScreen() {
     let cancelled = false;
     let menuResult: RestaurantMenu | null = null;
     let scanFailed = false;
+    let failType: ErrorType = 'nodish';
     let settled = false;
 
     // Scan via backend (falls back to mock when unconfigured); consume the
@@ -29,8 +30,10 @@ export function ProcessingScreen() {
       .then((m) => {
         menuResult = m;
       })
-      .catch(() => {
+      .catch((err) => {
         scanFailed = true;
+        // 429 = rate limited; show a "slow down" message instead of "no dishes".
+        if (err instanceof ApiError && err.status === 429) failType = 'ratelimit';
       })
       .finally(() => {
         settled = true;
@@ -58,7 +61,7 @@ export function ProcessingScreen() {
       setProcessingStep(total - 1);
 
       if (scanFailed) {
-        showError('nodish');
+        showError(failType);
         return;
       }
       if (menuResult) {

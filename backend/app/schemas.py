@@ -5,7 +5,7 @@ backend emits is byte-compatible with what the React app already expects.
 """
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Dish(BaseModel):
@@ -45,7 +45,8 @@ class RestaurantMenu(BaseModel):
 
 
 class PronunciationRequest(BaseModel):
-    name: str
+    # Bound the length so a huge string can't amplify OpenAI token cost.
+    name: str = Field(min_length=1, max_length=120)
 
 
 class PronunciationResult(BaseModel):

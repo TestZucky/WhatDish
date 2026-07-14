@@ -10,8 +10,10 @@ from __future__ import annotations
 import logging
 
 import httpx
+from fastapi import HTTPException, Request
 
 from ..config import get_settings
+from .rate_limit import client_ip
 
 logger = logging.getLogger("whatdish.turnstile")
 
@@ -43,3 +45,11 @@ def verify(token: str | None, remote_ip: str | None) -> bool:
     if not result.get("success"):
         logger.info("Turnstile rejected a request: %s", result.get("error-codes"))
     return bool(result.get("success"))
+
+
+def guard(request: Request, token: str | None) -> None:
+    """Reject (403) if Turnstile is enabled and the token is invalid. No-op when
+    Turnstile is disabled. Shared by every endpoint that should be bot-gated."""
+    if not verify(token, client_ip(request)):
+        logger.info("Rejected request: failed Turnstile verification")
+        raise HTTPException(status_code=403, detail="Verification failed. Please retry.")
