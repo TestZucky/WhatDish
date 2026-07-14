@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, X, Sparkles, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { StatusBar } from '../components/StatusBar';
 
 export function EditScreen() {
   const {
@@ -22,7 +21,6 @@ export function EditScreen() {
   return (
     <div className="flex flex-col h-full bg-[#FAF8F5]">
       <div className="sm:pt-5" />
-      <StatusBar />
       <div className="flex items-center gap-3 px-5 py-3 border-b border-[#E8E0D8]">
         <button
           onClick={goBack}

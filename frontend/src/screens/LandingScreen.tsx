@@ -2,7 +2,6 @@ import { useRef } from 'react';
 import { motion } from 'motion/react';
 import { Camera, Upload, Volume2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { StatusBar } from '../components/StatusBar';
 
 export function LandingScreen() {
   const { setScreen, setScanImage } = useApp();
@@ -20,7 +19,6 @@ export function LandingScreen() {
   return (
     <div className="flex flex-col h-full bg-[#FAF8F5] overflow-hidden">
       <div className="sm:pt-6" />
-      <StatusBar />
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#F75A2C]/10 blur-3xl" />
