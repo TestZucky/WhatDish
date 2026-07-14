@@ -11,6 +11,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
+from ..config import get_settings
 from . import dictionary
 from .llm import generate_json
 
@@ -72,6 +73,7 @@ def enrich(name: str) -> Pronunciation:
         system=_SYSTEM,
         max_tokens=1000,
         schema_name="pronunciation",
+        model=get_settings().enrich_model,
         prompt_cache_key="whatdish-pronunciation",
     )
     if data:
@@ -122,6 +124,7 @@ def _enrich_chunk(names: list[str]) -> dict[str, Pronunciation]:
             system=_BATCH_SYSTEM,
             max_tokens=1500,
             schema_name="pronunciations",
+            model=get_settings().enrich_model,
             prompt_cache_key="whatdish-pronunciation-batch",
         )
     except Exception:

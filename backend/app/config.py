@@ -79,18 +79,24 @@ class Settings:
         is_prod = self.app_env == "production"
 
         self.openai_api_key: str = os.getenv("OPENAI_API_KEY", "").strip()
-        # Cost control: dev defaults to a very cheap vision model, prod to the
-        # higher-quality one. Either can be pinned via WHATDISH_MODEL.
-        self.model: str = (
-            os.getenv("WHATDISH_MODEL", "").strip() or ("gpt-4o" if is_prod else "gpt-4o-mini")
-        )
+        # Vision model for extraction. Defaults to the cheap model for cost;
+        # bump to gpt-4o via WHATDISH_MODEL if you need higher OCR accuracy.
+        self.model: str = os.getenv("WHATDISH_MODEL", "").strip() or "gpt-4o-mini"
         # The guardrail is a throwaway classification — cheap in every env.
         self.guardrail_model: str = (
             os.getenv("WHATDISH_GUARDRAIL_MODEL", "").strip() or "gpt-4o-mini"
         )
+        # Pronunciation enrichment is simple text generation — keep it on the
+        # cheap model independently, even if the extraction model is bumped.
+        self.enrich_model: str = (
+            os.getenv("WHATDISH_ENRICH_MODEL", "").strip() or "gpt-4o-mini"
+        )
         # Per-request OpenAI timeout (seconds). The SDK defaults to ~10 min; a
         # tighter bound stops a hung call from tying up a worker.
         self.openai_timeout: float = _float_env("WHATDISH_OPENAI_TIMEOUT", 60.0)
+        # Cloudflare Turnstile secret. When set, scan endpoints require a valid
+        # token (bot/abuse protection). Empty = disabled (dev, tests, local).
+        self.turnstile_secret: str = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
         # Reject uploads larger than this before any model call (bytes). 10 MB.
         self.max_image_bytes: int = _int_env("WHATDISH_MAX_IMAGE_BYTES", 10 * 1024 * 1024)
         # After a scan, synthesise audio for recognized dishes in the background
@@ -134,6 +140,10 @@ class Settings:
     def ai_enabled(self) -> bool:
         """True when an OpenAI key is configured."""
         return bool(self.openai_api_key)
+
+    @property
+    def turnstile_enabled(self) -> bool:
+        return bool(self.turnstile_secret)
 
     @property
     def is_production(self) -> bool:

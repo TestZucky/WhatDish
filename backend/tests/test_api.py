@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.services import menu_ai, pronunciation, tts
+from app.services import menu_ai, pronunciation, tts, turnstile
 
 # A valid 1x1 PNG, reused wherever a route needs to pass the magic-byte check.
 _PNG = bytes.fromhex(
@@ -86,6 +86,25 @@ def test_scan_rejects_non_menu_image(client, monkeypatch):
     res = client.post("/api/menus/scan", files={"image": ("meme.png", png, "image/png")})
     assert res.status_code == 422
     assert "menu" in res.json()["detail"].lower()
+
+
+def test_scan_rejected_when_turnstile_fails(client, monkeypatch):
+    # With Turnstile enabled and verification failing, the scan is blocked (403)
+    # before any model work.
+    monkeypatch.setattr(turnstile, "verify", lambda token, remote_ip: False)
+    res = client.post("/api/menus/scan", files={"image": ("m.png", _PNG, "image/png")})
+    assert res.status_code == 403
+
+    res = client.post(
+        "/api/menus/scan/stream", files={"image": ("m.png", _PNG, "image/png")}
+    )
+    assert res.status_code == 403
+
+
+def test_scan_allowed_when_turnstile_disabled(client):
+    # Default: Turnstile disabled (no secret) -> verify allows, scan proceeds.
+    res = client.post("/api/menus/scan", files={"image": ("m.png", _PNG, "image/png")})
+    assert res.status_code == 200
 
 
 def test_scan_stream_emits_dishes_then_menu(client, monkeypatch):

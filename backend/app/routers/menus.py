@@ -3,18 +3,32 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
 from ..config import get_settings
 from ..schemas import RestaurantMenu
-from ..services import menu_ai, tts
+from ..services import menu_ai, tts, turnstile
 from ..services.menu_ai import NotAMenuError
 
 logger = logging.getLogger("whatdish.menus")
 
 router = APIRouter(prefix="/api/menus", tags=["menus"])
+
+# The Turnstile token field the widget adds to the multipart form.
+_TURNSTILE_FIELD = "cf-turnstile-response"
+
+
+def _guard_turnstile(request: Request, token: str | None) -> None:
+    """Reject the request (403) if Turnstile is enabled and the token is invalid.
+    No-op when Turnstile is disabled. Uses Cloudflare's real client IP header."""
+    remote_ip = request.headers.get("CF-Connecting-IP") or (
+        request.client.host if request.client else None
+    )
+    if not turnstile.verify(token, remote_ip):
+        logger.info("Rejected scan: failed Turnstile verification")
+        raise HTTPException(status_code=403, detail="Verification failed. Please retry.")
 
 
 def _sniff_image_type(data: bytes) -> str | None:
@@ -53,12 +67,17 @@ async def _read_image(image: UploadFile | None) -> tuple[bytes | None, str]:
 
 
 @router.post("/scan", response_model=RestaurantMenu)
-async def scan(image: UploadFile | None = File(default=None)) -> RestaurantMenu:
+async def scan(
+    request: Request,
+    image: UploadFile | None = File(default=None),
+    cf_token: str | None = Form(default=None, alias=_TURNSTILE_FIELD),
+) -> RestaurantMenu:
     """Scan a menu photo and return the full menu in one JSON response.
 
-    Non-image/oversized uploads are rejected before any OpenAI call, and a real
-    image that isn't a menu is rejected by the guardrail (422).
+    Turnstile (if enabled) and non-image/oversized uploads are rejected before
+    any OpenAI call; a real image that isn't a menu is rejected by the guardrail.
     """
+    _guard_turnstile(request, cf_token)
     image_bytes, media_type = await _read_image(image)
     try:
         # Blocking OpenAI calls run in a threadpool so this async route doesn't
@@ -74,12 +93,17 @@ async def scan(image: UploadFile | None = File(default=None)) -> RestaurantMenu:
 
 
 @router.post("/scan/stream")
-async def scan_stream(image: UploadFile | None = File(default=None)) -> StreamingResponse:
+async def scan_stream(
+    request: Request,
+    image: UploadFile | None = File(default=None),
+    cf_token: str | None = Form(default=None, alias=_TURNSTILE_FIELD),
+) -> StreamingResponse:
     """Same scan, streamed as NDJSON so the client shows dishes as they arrive.
 
-    Validation + guardrail run first (so 415/413/422 still apply); then each line
-    is a JSON event: `{"type":"dish",...}` per name, then `{"type":"menu",...}`.
+    Turnstile + validation + guardrail run first (403 / 415 / 413 / 422); then
+    each line is a JSON event: `{"type":"dish",...}`, then `{"type":"menu",...}`.
     """
+    _guard_turnstile(request, cf_token)
     image_bytes, media_type = await _read_image(image)
     try:
         data_url = await run_in_threadpool(menu_ai.precheck, image_bytes, media_type)

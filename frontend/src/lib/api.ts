@@ -1,5 +1,6 @@
 import type { RestaurantMenu } from '../types';
 import { MOCK_MENU } from '../data/menu';
+import { getTurnstileToken } from './turnstile';
 
 /**
  * WhatDish API client.
@@ -81,6 +82,10 @@ export async function scanMenu(
 
   const form = new FormData();
   if (image) form.append('image', image);
+  // Attach a Turnstile token when Turnstile is configured (no-op otherwise).
+  const turnstileToken = await getTurnstileToken();
+  if (turnstileToken) form.append('cf-turnstile-response', turnstileToken);
+
   const res = await fetch(`${BASE_URL}/api/menus/scan/stream`, {
     method: 'POST',
     body: form,

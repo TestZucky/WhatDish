@@ -5,7 +5,7 @@ dish back with an English and Hindi pronunciation, cuisine, price, and audio.
 
 Built with FastAPI and Pydantic, using the OpenAI API for menu reading and
 pronunciation, and gTTS or ElevenLabs for audio. The vision model is
-`gpt-4o-mini` in development and `gpt-4o` in production (configurable).
+`gpt-4o-mini` by default, configurable to `gpt-4o` for higher OCR accuracy.
 
 ## Endpoints
 
@@ -96,8 +96,9 @@ secrets in `.env.local`. See `.env.example` for every variable. Common ones:
 | Variable | Purpose | Default |
 | --- | --- | --- |
 | `OPENAI_API_KEY` | enables real scanning and pronunciation | empty (demo mode) |
-| `WHATDISH_MODEL` | vision model for extraction | `gpt-4o-mini` dev, `gpt-4o` prod |
+| `WHATDISH_MODEL` | vision model for extraction | `gpt-4o-mini` |
 | `WHATDISH_GUARDRAIL_MODEL` | cheap model for the menu guardrail | `gpt-4o-mini` |
+| `WHATDISH_ENRICH_MODEL` | model for pronunciation enrichment | `gpt-4o-mini` |
 | `WHATDISH_OPENAI_TIMEOUT` | per-request OpenAI timeout, seconds | `60` |
 | `WHATDISH_MAX_IMAGE_BYTES` | reject uploads larger than this | `10485760` (10 MB) |
 | `WHATDISH_PREWARM_AUDIO` | pre-synthesize audio after a scan | `true` |

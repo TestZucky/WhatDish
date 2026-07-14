@@ -70,7 +70,7 @@ the committed `backend/.env.development` and `backend/.env.production`.
 
 | | Development (default) | Production |
 | --- | --- | --- |
-| Vision model | `gpt-4o-mini` (cheap) | `gpt-4o` |
+| Vision model | `gpt-4o-mini` | `gpt-4o-mini` (bump to `gpt-4o` for accuracy) |
 | Guardrail model | `gpt-4o-mini` | `gpt-4o-mini` |
 | API docs (`/docs`) | on | off |
 | CORS | localhost | must be set explicitly |
@@ -129,7 +129,7 @@ flowchart TD
     end
 
     ApiClient -->|HTTP JSON, multipart, NDJSON| Main
-    LLM -->|gpt-4o-mini dev, gpt-4o prod| OpenAI["OpenAI API (vision + structured output)"]
+    LLM -->|gpt-4o-mini| OpenAI["OpenAI API (vision + structured output)"]
     TTS -->|if key set| EL["ElevenLabs"]
     TTS -->|fallback| GT["gTTS"]
 ```
