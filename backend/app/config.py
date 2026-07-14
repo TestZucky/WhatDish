@@ -97,6 +97,15 @@ class Settings:
         # Cloudflare Turnstile secret. When set, scan endpoints require a valid
         # token (bot/abuse protection). Empty = disabled (dev, tests, local).
         self.turnstile_secret: str = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
+
+        # Best-effort per-IP rate limiting on the OpenAI/TTS-backed endpoints.
+        # Counts are per IP per window (seconds). Protects against a single
+        # source draining the OpenAI quota / hammering the service.
+        self.rate_limit_enabled: bool = _bool_env("WHATDISH_RATE_LIMIT", True)
+        self.rate_limit_window: int = _int_env("WHATDISH_RATE_WINDOW", 3600)
+        self.rate_limit_scan: int = _int_env("WHATDISH_RATE_SCAN", 25)
+        self.rate_limit_pronounce: int = _int_env("WHATDISH_RATE_PRONOUNCE", 40)
+        self.rate_limit_audio: int = _int_env("WHATDISH_RATE_AUDIO", 200)
         # Reject uploads larger than this before any model call (bytes). 10 MB.
         self.max_image_bytes: int = _int_env("WHATDISH_MAX_IMAGE_BYTES", 10 * 1024 * 1024)
         # After a scan, synthesise audio for recognized dishes in the background

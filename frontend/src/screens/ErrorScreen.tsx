@@ -5,6 +5,7 @@ import {
   ImageOff,
   AlertCircle,
   WifiOff,
+  Clock,
   Check,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -22,6 +23,10 @@ const COPY = {
   audio: {
     title: 'Audio Unavailable',
     body: "Pronunciation audio isn't available right now. Check your connection and try again.",
+  },
+  ratelimit: {
+    title: 'Whoa, slow down!',
+    body: "You've scanned a lot in a short time. Please wait a few minutes and try again.",
   },
 } as const;
 
@@ -59,7 +64,7 @@ export function ErrorScreen() {
             background:
               errorType === 'blurry'
                 ? 'linear-gradient(135deg,#FEE2E2,#FECACA)'
-                : errorType === 'nodish'
+                : errorType === 'nodish' || errorType === 'ratelimit'
                   ? 'linear-gradient(135deg,#FEF3C7,#FDE68A)'
                   : 'linear-gradient(135deg,#F1F5F9,#E2E8F0)',
           }}
@@ -69,6 +74,9 @@ export function ErrorScreen() {
           )}
           {errorType === 'nodish' && (
             <AlertCircle size={40} className="text-amber-400" />
+          )}
+          {errorType === 'ratelimit' && (
+            <Clock size={40} className="text-amber-500" />
           )}
           {errorType === 'audio' && (
             <WifiOff size={40} className="text-slate-400" />

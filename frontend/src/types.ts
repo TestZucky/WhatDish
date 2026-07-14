@@ -6,7 +6,7 @@ export type Screen =
   | 'edit'
   | 'error';
 
-export type ErrorType = 'blurry' | 'nodish' | 'audio';
+export type ErrorType = 'blurry' | 'nodish' | 'audio' | 'ratelimit';
 
 export type MenuView = 'image' | 'list';
 

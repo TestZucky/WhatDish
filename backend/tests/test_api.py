@@ -3,7 +3,9 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import get_settings
 from app.main import app
+from app.routers import menus
 from app.services import menu_ai, pronunciation, tts, turnstile
 
 # A valid 1x1 PNG, reused wherever a route needs to pass the magic-byte check.
@@ -20,6 +22,8 @@ def client(monkeypatch):
     monkeypatch.setattr(tts, "synthesize", lambda text: f"data:audio/mpeg;base64,FAKE:{text}")
     monkeypatch.setattr(menu_ai, "generate_json", lambda **kwargs: None)
     monkeypatch.setattr(pronunciation, "generate_json", lambda **kwargs: None)
+    # Rate limiting off for functional tests; exercised explicitly below.
+    monkeypatch.setattr(get_settings(), "rate_limit_enabled", False)
     return TestClient(app)
 
 
@@ -150,6 +154,27 @@ def test_scan_stream_rejects_non_menu(client, monkeypatch):
         menu_ai, "generate_json", lambda **kwargs: {"is_menu": False, "reason": "cat"}
     )
     res = client.post("/api/menus/scan/stream", files={"image": ("m.png", _PNG, "image/png")})
+    assert res.status_code == 422
+
+
+def test_scan_rate_limited_per_ip(client, monkeypatch):
+    # Enable rate limiting with a tiny limit; the 3rd request from the same IP
+    # is rejected with 429.
+    monkeypatch.setattr(get_settings(), "rate_limit_enabled", True)
+    monkeypatch.setattr(menus._scan_limiter, "limit", 2)
+    menus._scan_limiter._hits.clear()
+
+    files = {"image": ("m.png", _PNG, "image/png")}
+    assert client.post("/api/menus/scan", files=files).status_code == 200
+    assert client.post("/api/menus/scan", files=files).status_code == 200
+    r = client.post("/api/menus/scan", files=files)
+    assert r.status_code == 429
+    assert "Retry-After" in r.headers
+    menus._scan_limiter._hits.clear()
+
+
+def test_pronunciation_name_too_long_is_rejected(client):
+    res = client.post("/api/pronunciations", json={"name": "x" * 200})
     assert res.status_code == 422
 
 
