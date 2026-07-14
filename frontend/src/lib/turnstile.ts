@@ -7,7 +7,6 @@
  */
 interface TurnstileApi {
   render: (el: HTMLElement, opts: Record<string, unknown>) => string;
-  execute: (el: HTMLElement, opts?: Record<string, unknown>) => void;
   remove: (id: string) => void;
 }
 
@@ -82,6 +81,7 @@ export async function getTurnstileToken(): Promise<string | undefined> {
         cleanup();
       },
     });
-    turnstile.execute(container, { sitekey: SITE_KEY });
+    // An invisible widget runs automatically on render; the callback delivers
+    // the token. (No execute() — that would double-fire.)
   });
 }
