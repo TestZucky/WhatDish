@@ -1,0 +1,23 @@
+# Render Blueprint for the WhatDish backend (free tier, no card needed).
+# Deploy: Render dashboard -> New -> Blueprint -> pick this repo.
+services:
+  - type: web
+    name: whatdish-api
+    runtime: docker
+    repo: https://github.com/TestZucky/WhatDish
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free # spins down after ~15 min idle; first request wakes it (~30-60s)
+    region: singapore # closest region; change if you prefer
+    healthCheckPath: /api/health
+    autoDeploy: true # redeploy on push to main
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: WHATDISH_CORS_ORIGINS
+        value: https://whatdish.pages.dev
+      - key: OPENAI_API_KEY
+        sync: false # you enter this in the Render dashboard; never committed
+      # Optional: uncomment to use ElevenLabs instead of free gTTS
+      # - key: ELEVENLABS_API_KEY
+      #   sync: false
