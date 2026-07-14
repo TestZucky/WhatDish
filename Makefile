@@ -13,7 +13,7 @@ PORT         := 8000
 FREE_PORT = lsof -tiTCP:$(PORT) -sTCP:LISTEN 2>/dev/null | xargs kill -9 2>/dev/null || true
 
 .DEFAULT_GOAL := help
-.PHONY: help install install-backend install-frontend hooks backend frontend dev build start test clean
+.PHONY: help install install-backend install-frontend hooks backend frontend dev build start tunnel test clean
 
 help: ## Show this help
 	@echo "WhatDish — available commands:"
@@ -67,6 +67,17 @@ build: ## Build the frontend for PRODUCTION (uses .env.production)
 start: ## Run the API in PRODUCTION (no reload, real model, docs off)
 	@$(FREE_PORT)
 	APP_ENV=production $(UVICORN) app.main:app --host 0.0.0.0 --port $(PORT) --app-dir $(BACKEND_DIR)
+
+tunnel: ## Share the app over HTTPS for phone testing (Cloudflare quick tunnel)
+	@command -v cloudflared >/dev/null || { echo "cloudflared not found. Install with: brew install cloudflared"; exit 1; }
+	@$(FREE_PORT)
+	@echo "→ Starting backend + frontend + Cloudflare tunnel."
+	@echo "→ Open the https://<random>.trycloudflare.com URL printed below on your phone."
+	@trap 'kill 0' INT TERM EXIT; \
+	APP_ENV=development $(UVICORN) app.main:app --port $(PORT) --app-dir $(BACKEND_DIR) & \
+	( cd $(FRONTEND_DIR) && npm run dev -- --mode tunnel --port 5173 --strictPort ) & \
+	( sleep 4 && cloudflared tunnel --url http://localhost:5173 ) & \
+	wait
 
 test: ## Run backend unit tests
 	$(PIP) install -q -r $(BACKEND_DIR)/requirements-dev.txt

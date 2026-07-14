@@ -12,10 +12,13 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    // Uncomment to proxy API calls to the backend during local dev instead of
-    // setting VITE_API_BASE_URL:
-    // proxy: {
-    //   '/api': { target: 'http://localhost:8000', changeOrigin: true },
-    // },
+    // Proxy /api to the backend so the app can talk to it same-origin. This is
+    // what lets `make tunnel` expose everything through a single HTTPS URL for
+    // phone testing (no CORS, no second tunnel).
+    proxy: {
+      '/api': { target: 'http://localhost:8000', changeOrigin: true },
+    },
+    // Allow Cloudflare quick-tunnel hostnames to reach the dev server.
+    allowedHosts: ['.trycloudflare.com'],
   },
 })

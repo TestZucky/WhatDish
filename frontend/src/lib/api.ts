@@ -18,7 +18,10 @@ import { getTurnstileToken } from './turnstile';
  */
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
-export const USE_MOCK = BASE_URL === '';
+// Proxy mode: call a same-origin `/api` (Vite proxies it to the backend) instead
+// of mock data. Used by `make tunnel` so one HTTPS URL serves app + API.
+const USE_PROXY = import.meta.env.VITE_API_PROXY === 'true';
+export const USE_MOCK = BASE_URL === '' && !USE_PROXY;
 
 export class ApiError extends Error {
   status: number;
