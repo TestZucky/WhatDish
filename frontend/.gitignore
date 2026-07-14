@@ -8,6 +8,13 @@ dist-ssr
 !.env.example
 !.env.development
 !.env.production
+!.env.e2e
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
 # Editor
 .vscode/*

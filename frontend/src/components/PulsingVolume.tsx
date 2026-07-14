@@ -4,6 +4,7 @@ export function PulsingVolume({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
+      aria-label="Hear pronunciation"
       className="relative flex items-center justify-center w-8 h-8 rounded-full bg-[#F75A2C] shadow-[0_4px_14px_rgba(247,90,44,0.55)] active:scale-90 transition-transform flex-shrink-0 z-10"
     >
       <Volume2 size={13} className="text-white relative z-10" />
