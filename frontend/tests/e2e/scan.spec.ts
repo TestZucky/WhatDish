@@ -27,6 +27,9 @@ test('uploading a menu runs the scan and shows dishes', async ({ page }) => {
 
   // Menu is image-only now: no Image/List toggle.
   await expect(page.getByRole('button', { name: 'List' })).toHaveCount(0);
+
+  // "Scan again" lets the user start a new scan from the results.
+  await expect(page.getByRole('button', { name: /scan again/i })).toBeVisible();
 });
 
 test('opening a dish shows pronunciations and no extra action buttons', async ({ page }) => {

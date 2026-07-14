@@ -1,17 +1,16 @@
 import { motion } from 'motion/react';
+import { Camera } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { StatusBar } from '../components/StatusBar';
 import { PulsingVolume } from '../components/PulsingVolume';
 
 export function MenuScreen() {
-  const { menu, openDish } = useApp();
+  const { menu, openDish, setScreen } = useApp();
 
   return (
     <div className="flex flex-col h-full bg-[#FAF8F5]">
       <div className="bg-[#FAF8F5]/96 backdrop-blur-md border-b border-[#E8E0D8] z-30 flex-shrink-0">
         <div className="sm:pt-5" />
-        <StatusBar />
-        <div className="flex items-center px-5 py-3">
+        <div className="flex items-center justify-between px-5 py-3">
           <div>
             <p className="font-extrabold text-[#1A1614] text-[15px]">
               {menu.restaurant.name}
@@ -23,6 +22,13 @@ export function MenuScreen() {
               </p>
             </div>
           </div>
+          <button
+            onClick={() => setScreen('camera')}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#F75A2C] text-white text-xs font-bold shadow-[0_4px_14px_rgba(247,90,44,0.4)] active:scale-95 transition-transform flex-shrink-0"
+          >
+            <Camera size={13} />
+            Scan again
+          </button>
         </div>
       </div>
 
