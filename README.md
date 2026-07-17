@@ -1,5 +1,7 @@
 # WhatDish
 
+**Live at [whatdish.pages.dev](https://whatdish.pages.dev/)**
+
 Scan a restaurant menu and instantly learn how to say every dish. WhatDish reads
 a menu photo and returns each dish with an English and Hindi pronunciation guide,
 playable audio, cuisine, and price. It is built mobile-first, for diners facing
