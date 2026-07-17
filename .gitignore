@@ -9,3 +9,10 @@ Thumbs.db
 
 # Local overrides
 *.local
+
+# Secrets — backstop for any directory without its own .gitignore. Real keys
+# belong in .env.local / .env.<env>.local, both covered by *.local above. The
+# non-secret per-env defaults (.env.example, .env.development, .env.production)
+# are committed on purpose and are unaffected by these rules.
+.env
+.env.*.local
