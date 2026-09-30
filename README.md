@@ -1,7 +1,5 @@
 # WhatDish
 
-**Live at [whatdish.pages.dev](https://whatdish.pages.dev/)**
-
 Scan a restaurant menu and instantly learn how to say every dish. WhatDish reads
 a menu photo and returns each dish with an English and Hindi pronunciation guide,
 playable audio, cuisine, and price. It is built mobile-first, for diners facing
@@ -232,8 +230,7 @@ docker run -p 8000:8000 \
   whatdish-api
 ```
 
-CI publishes the image to `ghcr.io/<owner>/what_dish-api` (`latest` and a
-per-commit `sha-...` tag) on merge to `main`.
+CI builds the image on every run to validate the Dockerfile; it is not published.
 
 ## Project layout
 

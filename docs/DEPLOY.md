@@ -1,5 +1,8 @@
 # Deploy: GCP Cloud Run (backend) + Cloudflare Pages (frontend)
 
+> **Not currently deployed.** The hosted services were shut down on 2026-09-30.
+> This guide is kept as a reference for redeploying from scratch.
+
 Backend on Google Cloud Run (auto-scales, ~$0 at demo scale, fast cold starts)
 and frontend on Cloudflare Pages (static, free). No custom domain needed.
 
@@ -82,10 +85,3 @@ Live at `https://whatdish.pages.dev`. CORS already allows it (set in step 1).
   and `TURNSTILE_SECRET_KEY` (a Cloud Run env var). See PRE_DEPLOY_CHECKLIST.md.
 - **Cost:** Cloud Run ~$0 at demo scale (free tier); Pages free; OpenAI on
   credits, $50-capped.
-
-## Card-free alternative (Render)
-
-If you'd rather not put a card on GCP, `render.yaml` deploys the same image on
-Render's free tier (no card): Render dashboard -> New -> Blueprint -> pick this
-repo, enter `OPENAI_API_KEY`. Tradeoff: it sleeps after ~15 min idle, so the
-first scan after a pause takes ~30-60s to wake.

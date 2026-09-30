@@ -2,7 +2,7 @@ name: CI
 
 # Two moments in a PR's life:
 #   • pull_request  → someone OPENS or updates a PR against main  ⇒ run all checks
-#   • push to main  → a PR is MERGED (its commits land on main)   ⇒ re-check, then deploy
+#   • push to main  → a PR is MERGED (its commits land on main)   ⇒ re-check
 on:
   pull_request:
     branches: [main]
@@ -10,7 +10,6 @@ on:
     branches: [main]
 
 # Cancel superseded runs on the SAME PR branch (new push kills the old run).
-# Never cancel main runs — we don't want to interrupt a deploy mid-flight.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -117,98 +116,20 @@ jobs:
           retention-days: 7
 
   image:
-    name: Docker image · build & publish
-    # Builds the backend image on every PR (validates the Dockerfile) and
-    # publishes it to GHCR on merge to main. Runs only after the checks pass.
+    name: Docker image · build
+    # Builds the backend image to validate the Dockerfile. Nothing is published.
     needs: [backend, frontend, e2e]
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write # push to GitHub Container Registry
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GHCR
-        # Only needed when we actually push (merge to main).
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Image tags & labels
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}-api
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,format=long
-
-      - name: Build (and push on main)
+      - name: Build
         uses: docker/build-push-action@v6
         with:
           context: backend
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  # ── Auto-deploy on merge to main ────────────────────────────────────────────
-  # These run only after all checks pass AND you opt in by setting the repo
-  # variable DEPLOY_ENABLED=true (Settings -> Secrets and variables -> Actions
-  # -> Variables). Until then they are skipped, so CI stays green.
-
-  deploy-backend:
-    name: Deploy backend (Cloud Run)
-    needs: [backend, frontend, e2e, image]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - uses: google-github-actions/setup-gcloud@v2
-      # Redeploys the image; existing env vars (OPENAI_API_KEY, CORS) are kept,
-      # so no secrets beyond GCP auth are needed here.
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy whatdish-api \
-            --source backend \
-            --project "${{ secrets.GCP_PROJECT_ID }}" \
-            --region asia-south1 \
-            --quiet
-
-  deploy-frontend:
-    name: Deploy frontend (Cloudflare Pages)
-    needs: [backend, frontend, e2e]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
-      - name: Build (points at the backend URL)
-        run: npm run build
-        env:
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
-          # Set the VITE_TURNSTILE_SITE_KEY repo variable to enable the bot check.
-          VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
-      - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy dist --project-name=whatdish --branch=main
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
